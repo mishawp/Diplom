@@ -1,4 +1,6 @@
-from .ProcessingDataPage import ProcessingDataPage
+from .DataProcessingPage import DataProcessingPage
+from .NNSelectionPage import NNSelectionPage
+from .HyperparametersPage import HyperparametersPage
 
 
-__all__ = ["ProcessingDataPage"]
+__all__ = ["DataProcessingPage", "NNSelectionPage", "HyperparametersPage"]

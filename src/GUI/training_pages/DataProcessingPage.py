@@ -11,7 +11,7 @@ PROJECT_ROOT = os.getenv("project_root")
 global_widgets = {"frequency": None, "leads": None}
 
 
-class ProcessingDataPage(ctk.CTkFrame):
+class DataProcessingPage(ctk.CTkFrame):
     def __init__(self, controller):
         # 8 row 4 col
         super().__init__(controller)
@@ -55,6 +55,13 @@ class ProcessingDataPage(ctk.CTkFrame):
         self.frame_processing_2d.grid(
             row=5, column=2, padx=20, pady=10, sticky="ew", columnspan=2
         )
+
+        self.button_next_page = ctk.CTkButton(
+            self,
+            text="Выбрать нейронную сеть",
+            command=lambda: controller.show_frame("NNSelectionPage"),
+        )
+        self.button_next_page.grid(row=6, column=3, padx=20, pady=(10, 20), sticky="ew")
 
     def download_data(self):
         if self.window_download is None or not self.window_download.winfo_exists():
@@ -282,13 +289,13 @@ class ProcessWindow(ctk.CTkToplevel):
 
     def process(self):
         if not self.mainframe_frame_leads.get():
-            self.label_status.configure(text=f"Отведения не выбраны", text_color="red")
+            self.label_status.configure(text="Отведения не выбраны", text_color="red")
             return
         if not self.frame_dataset.get():
-            self.label_status.configure(text=f"Датасет не выбран", text_color="red")
+            self.label_status.configure(text="Датасет не выбран", text_color="red")
             return
         if not self.frame_dataset.get():
-            self.label_status.configure(text=f"Недопустипомое имя", text_color="red")
+            self.label_status.configure(text="Недопустимое имя", text_color="red")
             return
         path_data_processed = Path(
             PROJECT_ROOT,

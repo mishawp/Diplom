@@ -10,7 +10,7 @@ class MainMenu(ctk.CTkFrame):
         self.button_train = ctk.CTkButton(
             self,
             text="Обучить нейронную сеть",
-            command=lambda: controller.show_frame("ProcessingDataPage"),
+            command=lambda: controller.show_frame("DataProcessingPage"),
         )
         self.button_train.grid(row=0, column=0, padx=30, pady=30, sticky="ew")
 
@@ -20,3 +20,5 @@ class MainMenu(ctk.CTkFrame):
             command=lambda: controller.show_frame("PredictPage"),
         )
         self.button_about.grid(row=1, column=0, padx=30, pady=(10, 30), sticky="ew")
+
+        # self.configure(border_width=1, border_color="red")
