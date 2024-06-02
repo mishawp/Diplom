@@ -78,19 +78,18 @@ class GRUCreator:
 
     def create(
         self,
-        input_size: int,
-        hidden_size: int,
-        num_layers: int,
-        dropout: float,
-        device: str = None,
+        **kwargs,
     ):
-        """Проверка корректности передаваемых параметров"""
-        for param, param_type in self.params:
-            if isinstance(param, param_type):
-                return param
-        if device not in ["cpu", "cuda", "mps"]:
+        """Проверка корректности передаваемых параметров
+        Нет проверки на положительность чисел"""
+        try:
+            for param, param_type in self.params.items():
+                kwargs[param] = param_type(kwargs[param])
+        except ValueError:
+            return param
+        if kwargs["device"] not in ["cpu", "cuda", "mps"]:
             return "device"
-        if dropout < 0 or dropout > 1:
+        if not (0 <= kwargs["dropout"] <= 1):
             return "dropout"
 
-        return GRU(input_size, hidden_size, num_layers, dropout, device)
+        return GRU(**kwargs)

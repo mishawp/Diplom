@@ -48,13 +48,14 @@ class NNSelectionPage(ctk.CTkFrame):
         if var_nn_text == "":
             return
         path_nn = var_nn_text.split("/")
+        dimension = int(path_nn[1][2])  # nn1d или nn2d -> 1 или 2
         path_module = ".".join(path_nn[:-1])  # извлекаем src.nn1d или src.nn2d
         nn_name = path_nn[-1][:-3]  # удаляем суффикс .py
         creator = getattr(importlib.import_module(path_module), f"{nn_name}Creator")()
 
         # передаем выбранную NN (точнее, NN Creator ) в HyperparametersPage, т.е. в следующую страницу
         page = self.controller.frames["HyperparametersPage"]
-        page.init_hyperparameters(creator)
+        page.init_hyperparameters(creator, dimension)
         self.controller.show_frame(page.__class__.__name__)
 
 
@@ -80,7 +81,7 @@ class NNFrame(ctk.CTkFrame):
                 self,
                 text=nn.stem,
                 variable=parent.var_nn,
-                value="/".join(nn.parts[-3:]),
+                value="/".join(nn.parts[-3:]),  # src/nn1(2)d/nn_creator.py
             )
             radiobutton.grid(row=i, column=0, padx=10, pady=10, sticky="ew")
             self.radiobuttons.append(radiobutton)
