@@ -11,6 +11,9 @@ class HyperparametersPage(ctk.CTkFrame):
         self.controller = controller
         self.grid_rowconfigure((0, 1, 2, 3), weight=1)
 
+        self.path_model = Path(PROJECT_ROOT, "models")
+        self.path_reports = Path(PROJECT_ROOT, "reports")
+
         self.label = ctk.CTkLabel(
             self, text="Гиперпараметры", fg_color="gray30", corner_radius=6
         )
@@ -35,12 +38,21 @@ class HyperparametersPage(ctk.CTkFrame):
         self.init_other_params()
         self.default_color = self.entry_epochs.cget("fg_color")
 
+        self.label_name = ctk.CTkLabel(self, text="Назовите модель: ")
+        self.label_name.grid(row=3, column=2, padx=20, pady=10, sticky="ew")
+
+        self.entry_name = ctk.CTkEntry(self)
+        self.entry_name.grid(row=3, column=3, padx=20, pady=10, sticky="ew")
+
+        self.label_name_status = ctk.CTkLabel(self, text="")
+        self.label_name_status.grid(row=4, column=3, padx=20, pady=10, sticky="ew")
+
         self.button_next_page = ctk.CTkButton(
             self,
-            text="Настройка гиперпараметров",
+            text="Обучить модель",
             command=self.next_page,
         )
-        self.button_next_page.grid(row=3, column=3, padx=20, pady=(10, 20), sticky="ew")
+        self.button_next_page.grid(row=5, column=3, padx=20, pady=(10, 20), sticky="ew")
 
     def init_hyperparameters(self, NNCreator, dimension):
         """Динамическое создание полей для ввода параметров нейронной сети
@@ -105,6 +117,10 @@ class HyperparametersPage(ctk.CTkFrame):
 
     def next_page(self):
         """Нет проверки на положительность числа"""
+        for entrys in self.entrys_params.values():
+            entrys.configure(fg_color=self.default_color)
+        self.entry_name.configure(fg_color=self.default_color)
+
         params_other = {}
 
         params_other["epochs"] = self.entry_epochs.get()
@@ -130,17 +146,26 @@ class HyperparametersPage(ctk.CTkFrame):
             getattr(self, f"entry_{tmp}").configure(fg_color="red")
             return
 
-        for entrys in self.entrys_params.values():
-            entrys.configure(fg_color=self.default_color)
-
         params_nn = {param: entry.get() for param, entry in self.entrys_params.items()}
-        NN = self.NNCreator.create(**params_nn)
+        model = self.NNCreator.create(**params_nn)
 
-        if isinstance(NN, str):
-            self.entrys_params[NN].configure(fg_color="red")
+        if isinstance(model, str):
+            self.entrys_params[model].configure(fg_color="red")
             return
 
-        self.controller.show_frame("NNTrainingPage")
+        model_name = self.entry_name.get()
+        if (
+            model_name == ""
+            or model_name in map(lambda x: x.name, self.path_model.iterdir())
+            or model_name in map(lambda x: x.name, self.path_reports.iterdir())
+        ):
+            self.entry_name.configure(fg_color="red")
+            return
+
+        self.controller.frames["TrainingPage"].set_model(
+            model, model_name, params_nn, params_other
+        )
+        self.controller.show_frame("TrainingPage")
 
     def prev_page(self):
         for label, entry in zip(self.labels_params, self.entrys_params.values()):

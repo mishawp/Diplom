@@ -1,7 +1,12 @@
 import customtkinter as ctk
 import tkinter as tk
 from .MainMenu import MainMenu
-from .training_pages import DataProcessingPage, NNSelectionPage, HyperparametersPage
+from .training_pages import (
+    DataProcessingPage,
+    NNSelectionPage,
+    HyperparametersPage,
+    TrainingPage,
+)
 from .predict_pages import PredictPage
 
 
@@ -19,6 +24,7 @@ class MainApp(ctk.CTk):
             PredictPage,
             NNSelectionPage,
             HyperparametersPage,
+            TrainingPage,
         ):
             page_name = F.__name__
             frame = F(controller=self)
