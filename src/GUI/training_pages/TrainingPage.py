@@ -28,17 +28,23 @@ class TrainingPage(ctk.CTkFrame):
         )
         self.label.grid(row=2, column=0, padx=20, pady=20, sticky="ew", columnspan=4)
 
-    def set_model(self, model, model_name, params_nn, params_other):
+    def set_model(
+        self, model, dimension, model_name, dataset_name, params_nn, params_other
+    ):
         """Принимает с предыдущей страницы данные
 
         Args:
             model (nn.Module): модель нейронной сети
+            dimension (int): размерность входных данных
             model_name (str): имя, которая будет дана модели
+            dataset_name (str): название датасета
             params_nn (dict[str: value]): параметры нейронной сети в виде словаря
             params_other (dict[str: value]): параметры обучения в виде словаря
         """
         self.model = model
+        self.dimension = dimension
         self.model_name = model_name
+        self.dataset_name = dataset_name
         self.params_nn = params_nn
         self.params_other = params_other
 
