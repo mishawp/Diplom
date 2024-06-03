@@ -1,6 +1,5 @@
 import os
 import customtkinter as ctk
-import importlib
 from pathlib import Path
 
 PROJECT_ROOT = os.getenv("project_root")
@@ -44,18 +43,13 @@ class NNSelectionPage(ctk.CTkFrame):
         self.button_next_page.grid(row=3, column=3, padx=20, pady=(10, 20), sticky="ew")
 
     def next_page(self):
-        var_nn_text = self.var_nn.get()
-        if var_nn_text == "":
+        path_nn = self.var_nn.get()
+        if path_nn == "":
             return
-        path_nn = var_nn_text.split("/")
-        dimension = int(path_nn[1][2])  # nn1d или nn2d -> 1 или 2
-        path_module = ".".join(path_nn[:-1])  # извлекаем src.nn1d или src.nn2d
-        nn_name = path_nn[-1][:-3]  # удаляем суффикс .py
-        creator = getattr(importlib.import_module(path_module), f"{nn_name}Creator")()
 
-        # передаем выбранную NN (точнее, NN Creator ) в HyperparametersPage, т.е. в следующую страницу
+        dimension = 1 if "nn1d" in path_nn else 2
         page = self.controller.frames["HyperparametersPage"]
-        page.init_hyperparameters(creator, dimension)
+        page.set_args(path_nn=path_nn, dimension=dimension)
         self.controller.show_frame(page.__class__.__name__)
 
 
@@ -73,15 +67,15 @@ class NNFrame(ctk.CTkFrame):
 
         path_nns = Path(PROJECT_ROOT, "src", f"nn{dimension}d")
         self.radiobuttons = []
-        for i, nn in enumerate(path_nns.iterdir(), start=1):
-            if not nn.is_file() or nn.name == "__init__.py":
+        for i, path_nn in enumerate(path_nns.iterdir(), start=1):
+            if not path_nn.is_file() or path_nn.name == "__init__.py":
                 continue
 
             radiobutton = ctk.CTkRadioButton(
                 self,
-                text=nn.stem,
+                text=path_nn.stem,
                 variable=parent.var_nn,
-                value="/".join(nn.parts[-3:]),  # src/nn1(2)d/nn_creator.py
+                value=str(path_nn),
             )
             radiobutton.grid(row=i, column=0, padx=10, pady=10, sticky="ew")
             self.radiobuttons.append(radiobutton)

@@ -2,7 +2,7 @@ import torch
 from torch import nn
 
 
-class GRU(nn.Module):
+class BiGRU(nn.Module):
     def __init__(
         self,
         input_size: int = 3,
@@ -19,13 +19,13 @@ class GRU(nn.Module):
             num_layers (int): Кол-во слоев
             dropout (float): Вероятность отключения нейронов
         """
-        super(GRU, self).__init__()
+        super(BiGRU, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.num_layers = num_layers
         self.dropout = dropout
         self.device = device
-        self.bidirectional = 1  # 1 - не двунаправленный, 2 - двунаправленный
+        self.bidirectional = 2  # 1 - не двунаправленный, 2 - двунаправленный
 
         self.gru = nn.GRU(
             input_size,
@@ -54,8 +54,12 @@ class GRU(nn.Module):
         out_gru, _ = self.gru(X.to(self.device), h_0)
         # out_rnn shape: (batch_size, seq_length, hidden_size*bidirectional) = (batch_size, 1000, hidden_size*bidirectional)
 
-        # last timestep
-        out_gru = out_gru[:, -1, :]
+        # concatenate last timestep from the "left-to-right" direction and the first timestep from the
+        # "right-to-left" direction
+        out_gru = torch.cat(
+            (out_gru[:, -1, : self.hidden_size], out_gru[:, 0, self.hidden_size :]),
+            dim=1,
+        )
 
         # out_rnn shape: (batch_size, hidden_size*bidirectional) - ready to enter the fc layer
         out_fc = self.fc(out_gru)

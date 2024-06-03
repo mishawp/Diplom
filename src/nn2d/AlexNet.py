@@ -2,22 +2,20 @@ from torch import nn
 
 
 class AlexNet(nn.Module):
-    def __init__(self, input_size, nb_filters, dropout, device=None):
+    def __init__(self, input_size, device=None):
         """
         Define the layers of the model
         Args:
             input_size (int): Кол-во входных признаков (1 на кол-во отведений, участвующих в обучение)
             nb_filters (int): Кол-во фильтров в первом слое
-            dropout (float): Коэффициент регуляризации
         """
         super(AlexNet, self).__init__()
         self.input_size = input_size
-        self.nb_filters = nb_filters
-        self.dropout = nn.Dropout2d(dropout)
+        self.dropout = nn.Dropout2d(0.5)
         self.device = device
-
+        nb_filters = 8
         # 9 input channels nn.Conv2d(in_channels, out_channels, kernel_size)
-        self.conv2d_1 = nn.Conv2d(9, nb_filters, 11, stride=4)
+        self.conv2d_1 = nn.Conv2d(input_size, nb_filters, 11, stride=4)
         self.conv2d_2 = nn.Conv2d(nb_filters, nb_filters * 2, 5, padding=2)
         self.conv2d_3 = nn.Conv2d(nb_filters * 2, nb_filters * 4, 3, padding=1)
         self.conv2d_4 = nn.Conv2d(nb_filters * 4, nb_filters * 8, 3, padding=1)
@@ -52,33 +50,3 @@ class AlexNet(nn.Module):
         x8 = self.relu(self.linear_2(x7))
         x9 = self.linear_3(x8)
         return x9
-
-
-class AlexNetCreator:
-    """Просто интерфейс для передачи нейронный сети"""
-
-    def __init__(self) -> None:
-        self.params = {
-            "input_size": int,
-            "nb_filters": int,
-            "dropout": float,
-            "device": str,
-        }
-
-    def create(
-        self,
-        input_size: int,
-        nb_filters: int,
-        dropout: float,
-        device: str = None,
-    ):
-        """Проверка корректности передаваемых параметров"""
-        for param, param_type in self.params:
-            if isinstance(param, param_type):
-                return param
-        if device not in ["cpu", "cuda", "mps"]:
-            return "device"
-        if dropout < 0 or dropout > 1:
-            return "dropout"
-
-        return AlexNet(input_size, nb_filters, device)

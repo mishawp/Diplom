@@ -1,4 +1,5 @@
 import os
+import importlib
 import customtkinter as ctk
 from pathlib import Path
 
@@ -26,19 +27,15 @@ class HyperparametersPage(ctk.CTkFrame):
         )
         self.button_back.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
 
-        self.frame_nn_params = ctk.CTkFrame(self)
-        self.frame_nn_params.grid(
-            row=2, column=0, padx=20, pady=20, sticky="ew", columnspan=2
+        self.frame_dataset = DatasetFrame(self)  # см. в init_hyperparameters
+        self.frame_dataset.grid(
+            row=3, column=0, padx=20, pady=20, sticky="ew", columnspan=4
         )
 
-        self.frame_dataset = None  # см. в init_hyperparameters
-
-        self.frame_other_params = ctk.CTkFrame(self)
-        self.frame_other_params.grid(
-            row=2, column=2, padx=20, pady=20, sticky="ew", columnspan=2
+        self.frame_parameters = ParametersFrame(self)
+        self.frame_parameters.grid(
+            row=2, column=1, padx=20, pady=20, sticky="ew", columnspan=2
         )
-        self.init_other_params()
-        self.default_color = self.entry_epochs.cget("fg_color")
 
         self.label_name = ctk.CTkLabel(self, text="Назовите модель: ")
         self.label_name.grid(row=4, column=2, padx=20, pady=10, sticky="ew")
@@ -56,142 +53,115 @@ class HyperparametersPage(ctk.CTkFrame):
         )
         self.button_next_page.grid(row=6, column=3, padx=20, pady=(10, 20), sticky="ew")
 
-    def init_hyperparameters(self, NNCreator, dimension):
-        """Динамическое создание полей для ввода параметров нейронной сети
+    def set_args(self, **kwargs):
+        """Получение параметров из предыдущей страницы
 
         Args:
-            hyperparameters (NNCreator): В каждом файле,
-            в котором определяется нейронная сеть, должен существовать класс NNCreator,
-            где NN - архитектура нейронной сети
+            path_nn (str): путь к нейронной сети
+            dimension (int): 1 или 2 (2D или 1D нейросеть будет обучаться)
         """
-        self.dimension = dimension
-        self.NNCreator = NNCreator
-        self.labels_params = []
-        self.entrys_params = {}
-        for i, (param, param_type) in enumerate(NNCreator.params.items()):
-            label = ctk.CTkLabel(self.frame_nn_params, text=param)
-            label.grid(row=i, column=0, padx=(20, 10), pady=20, sticky="ew")
-            entry = ctk.CTkEntry(self.frame_nn_params)
-            entry.grid(row=i, column=1, padx=(10, 20), pady=20, sticky="ew")
 
-            self.labels_params.append(label)
-            self.entrys_params[param] = entry
-
-        self.frame_dataset = DatasetFrame(self)
-        self.frame_dataset.grid(
-            row=3, column=0, padx=20, pady=20, sticky="ew", columnspan=4
-        )
-
-    def init_other_params(self):
-        """Знаю х*йня. Я за*бался"""
-        self.label_epochs = ctk.CTkLabel(self.frame_other_params, text="epochs")
-        self.label_epochs.grid(row=0, column=0, padx=(20, 10), pady=20, sticky="ew")
-        self.entry_epochs = ctk.CTkEntry(self.frame_other_params)
-        self.entry_epochs.grid(row=0, column=1, padx=(10, 20), pady=20, sticky="ew")
-
-        self.label_batch_size = ctk.CTkLabel(self.frame_other_params, text="batch_size")
-        self.label_batch_size.grid(row=1, column=0, padx=(20, 10), pady=20, sticky="ew")
-        self.entry_batch_size = ctk.CTkEntry(self.frame_other_params)
-        self.entry_batch_size.grid(row=1, column=1, padx=(10, 20), pady=20, sticky="ew")
-
-        self.label_learning_rate = ctk.CTkLabel(
-            self.frame_other_params, text="learning_rate"
-        )
-        self.label_learning_rate.grid(
-            row=2, column=0, padx=(20, 10), pady=20, sticky="ew"
-        )
-        self.entry_learning_rate = ctk.CTkEntry(self.frame_other_params)
-        self.entry_learning_rate.grid(
-            row=2, column=1, padx=(10, 20), pady=20, sticky="ew"
-        )
-
-        self.label_l2_decay = ctk.CTkLabel(self.frame_other_params, text="l2_decay")
-        self.label_l2_decay.grid(row=3, column=0, padx=(20, 10), pady=20, sticky="ew")
-        self.entry_l2_decay = ctk.CTkEntry(self.frame_other_params)
-        self.entry_l2_decay.grid(row=3, column=1, padx=(10, 20), pady=20, sticky="ew")
-
-        self.optimizer = ctk.StringVar(value="adam")
-        self.label_optimizer = ctk.CTkLabel(self.frame_other_params, text="optimizer")
-        self.label_optimizer.grid(row=4, column=0, padx=(20, 10), pady=20, sticky="ew")
-        self.optionmenu_optimizer = ctk.CTkOptionMenu(
-            self.frame_other_params,
-            values=["adam", "sgd"],
-            variable=self.optimizer,
-        )
-        self.optionmenu_optimizer.grid(
-            row=4, column=1, padx=(10, 20), pady=20, sticky="ew"
-        )
+        self.frame_dataset.init(kwargs["dimension"])
 
     def prev_page(self):
-        for label, entry in zip(self.labels_params, self.entrys_params.values()):
-            label.destroy()
-            entry.destroy()
-        del self.labels_params
-        del self.entrys_params
-
+        self.frame_dataset.destroy()
         self.controller.show_frame("NNSelectionPage")
 
     def next_page(self):
-        """Нет проверки на положительность числа"""
-        for entrys in self.entrys_params.values():
-            entrys.configure(fg_color=self.default_color)
-        self.entry_name.configure(fg_color=self.default_color)
-        self.entry_epochs.configure(fg_color=self.default_color)
-        self.entry_batch_size.configure(fg_color=self.default_color)
-        self.entry_learning_rate.configure(fg_color=self.default_color)
-        self.entry_l2_decay.configure(fg_color=self.default_color)
-
-        params_other = {}
-
-        params_other["epochs"] = self.entry_epochs.get()
-        params_other["batch_size"] = self.entry_batch_size.get()
-        params_other["learning_rate"] = self.entry_learning_rate.get()
-        params_other["l2_decay"] = self.entry_l2_decay.get()
-        params_other["optimizer"] = self.optimizer.get()
-
-        try:
-            tmp = "epochs"
-            params_other[tmp] = int(params_other[tmp])
-            tmp = "batch_size"
-            params_other[tmp] = int(params_other[tmp])
-            tmp = "learning_rate"
-            params_other[tmp] = float(params_other[tmp])
-            tmp = "l2_decay"
-            params_other[tmp] = float(params_other[tmp])
-        except ValueError:
-            getattr(self, f"entry_{tmp}").configure(fg_color="red")
-            return
-
-        params_nn = {param: entry.get() for param, entry in self.entrys_params.items()}
-
-        model_name = self.entry_name.get()
-        if (
-            model_name == ""
-            or model_name in map(lambda x: x.name, self.path_model.iterdir())
-            or model_name in map(lambda x: x.name, self.path_reports.iterdir())
-        ):
-            self.entry_name.configure(fg_color="red")
-            return
-
         dataset_name = self.frame_dataset.get()
         if dataset_name == "":
             return
 
-        model = self.NNCreator.create(**params_nn)
-        if isinstance(model, str):
-            self.entrys_params[model].configure(fg_color="red")
-            return
+        model_class = importlib.import_module(self.path_nn)
 
         self.controller.frames["TrainingPage"].set_model(
-            model, self.dimension, model_name, dataset_name, params_nn, params_other
+            model_class, self.dimension, model_class.__name__, dataset_name
         )
         self.controller.show_frame("TrainingPage")
+
+
+class NNFrame(ctk.CTkFrame):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+    def init(self, path_nn: Path | str):
+        """Динамическое создание фрейма
+
+        Args:
+            path_nn (Path | str): путь к реализации класса нейронной сети
+        """
+        pass
+
+
+class ParametersFrame(ctk.CTkFrame):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.grid_columnconfigure(0, weight=1)
+        self.label_parameters = {}.fromkeys(
+            ("epochs", "batch_size", "learning_rate", "l2_decay", "optimizer")
+        )
+        self.entry_parameters = {}.fromkeys(
+            ("epochs", "batch_size", "learning_rate", "l2_decay", "optimizer")
+        )
+
+        self.title = ctk.CTkLabel(
+            self, text="Параметры", fg_color="gray30", corner_radius=6
+        )
+        self.title.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+
+        for i, param in enumerate(self.parameters, start=1):
+            label = ctk.CTkLabel(self, text=param)
+            label.grid(row=i, column=0, padx=(20, 10), pady=20, sticky="ew")
+
+            if param == "optimizer":
+                self.var_optimizer = ctk.StringVar(value="adam")
+                entry = ctk.CTkOptionMenu(
+                    self,
+                    values=["adam", "sgd"],
+                    variable=self.var_optimizer,
+                )
+                entry.grid(row=i, column=1, padx=(10, 20), pady=20, sticky="ew")
+            else:
+                entry = ctk.CTkEntry(self)
+                entry.grid(row=i, column=1, padx=(10, 20), pady=20, sticky="ew")
+
+            self.label_parameters[param] = label
+            self.entry_parameters[param] = entry
+
+        self.default_color = self.entry_parameters["batch_size"].cget("fg_color")
+
+    def check_parameters(self):
+        for entry in self.entry_parameters.value():
+            if isinstance(entry, ctk.CTkEntry):
+                entry.configure(fg_color=self.default_color)
+
+        for param, entry in self.entry_parameters.items():
+            value = entry.get()
+            if param == "epochs" or param == "batch_size":
+                if not value.isdigit():
+                    entry.configure(fg_color="red")
+                    return False
+            elif param == "learning_rate" or param == "l2_decay":
+                try:
+                    value = float(value)
+                except ValueError:
+                    entry.configure(fg_color="red")
+                    return False
+
+                if not (0 <= value <= 1):
+                    entry.configure(fg_color="red")
+                    return False
+
+    def get_parameters(self):
+        return self.entry_parameters
 
 
 class DatasetFrame(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent)
-        self.dimension = parent.dimension
+
+    def init(self, dimension):
+        self.dimension = dimension
         self.path_data_processed = Path(
             PROJECT_ROOT, "data", "processed", f"{self.dimension}D"
         )
@@ -210,8 +180,8 @@ class DatasetFrame(ctk.CTkFrame):
             pady=10,
             sticky="ew",
         )
-        self.variable = ctk.StringVar(value="")
 
+        self.variable = ctk.StringVar(value="")
         self.radiobuttons = []
         for i, dataset in enumerate(self.processed_datasets):
             radiobutton = ctk.CTkRadioButton(
@@ -220,8 +190,5 @@ class DatasetFrame(ctk.CTkFrame):
             radiobutton.grid(row=1, column=i, padx=5, pady=5, sticky="ew")
             self.radiobuttons.append(radiobutton)
 
-    def get(self):
-        return self.variable.get()
-
-    def set(self, value):
-        self.variable.set(value)
+    def get_dataset(self):
+        return self.variable
