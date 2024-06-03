@@ -48,7 +48,7 @@ class NNSelectionPage(ctk.CTkFrame):
             return
 
         dimension = 1 if "nn1d" in path_nn else 2
-        page = self.controller.frames["HyperparametersPage"]
+        page = self.controller.frames["ParametersPage"]
         page.set_args(path_nn=path_nn, dimension=dimension)
         self.controller.show_frame(page.__class__.__name__)
 

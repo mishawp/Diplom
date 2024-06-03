@@ -6,14 +6,11 @@ from pathlib import Path
 PROJECT_ROOT = os.getenv("project_root")
 
 
-class HyperparametersPage(ctk.CTkFrame):
+class ParametersPage(ctk.CTkFrame):
     def __init__(self, controller):
         super().__init__(controller)
         self.controller = controller
         self.grid_rowconfigure((0, 1, 2, 3), weight=1)
-
-        self.path_model = Path(PROJECT_ROOT, "models")
-        self.path_reports = Path(PROJECT_ROOT, "reports")
 
         self.label = ctk.CTkLabel(
             self, text="Гиперпараметры", fg_color="gray30", corner_radius=6
@@ -27,40 +24,42 @@ class HyperparametersPage(ctk.CTkFrame):
         )
         self.button_back.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
 
+        self.frame_parameters = ParametersFrame(self)
+        self.frame_parameters.grid(
+            row=2, column=0, padx=20, pady=20, sticky="ew", columnspan=2
+        )
+
+        self.frame_nn = NNFrame(self)
+        self.frame_nn.grid(
+            row=2, column=2, padx=20, pady=20, sticky="nsew", columnspan=2
+        )
+
         self.frame_dataset = DatasetFrame(self)  # см. в init_hyperparameters
         self.frame_dataset.grid(
             row=3, column=0, padx=20, pady=20, sticky="ew", columnspan=4
         )
 
-        self.frame_parameters = ParametersFrame(self)
-        self.frame_parameters.grid(
-            row=2, column=1, padx=20, pady=20, sticky="ew", columnspan=2
+        self.frame_model_naming = ModelNamingFrame(self)
+        self.frame_model_naming.grid(
+            row=4, column=2, padx=20, pady=20, sticky="ew", columnspan=2
         )
-
-        self.label_name = ctk.CTkLabel(self, text="Назовите модель: ")
-        self.label_name.grid(row=4, column=2, padx=20, pady=10, sticky="ew")
-
-        self.entry_name = ctk.CTkEntry(self)
-        self.entry_name.grid(row=4, column=3, padx=20, pady=10, sticky="ew")
-
-        self.label_name_status = ctk.CTkLabel(self, text="")
-        self.label_name_status.grid(row=5, column=3, padx=20, pady=10, sticky="ew")
 
         self.button_next_page = ctk.CTkButton(
             self,
             text="Обучить модель",
             command=self.next_page,
         )
-        self.button_next_page.grid(row=6, column=3, padx=20, pady=(10, 20), sticky="ew")
+        self.button_next_page.grid(row=5, column=3, padx=20, pady=(10, 20), sticky="ew")
 
     def set_args(self, **kwargs):
         """Получение параметров из предыдущей страницы
 
-        Args:
+        kwargs:
             path_nn (str): путь к нейронной сети
             dimension (int): 1 или 2 (2D или 1D нейросеть будет обучаться)
         """
-
+        self.kwargs = kwargs
+        self.frame_nn.init(kwargs["path_nn"])
         self.frame_dataset.init(kwargs["dimension"])
 
     def prev_page(self):
@@ -68,29 +67,28 @@ class HyperparametersPage(ctk.CTkFrame):
         self.controller.show_frame("NNSelectionPage")
 
     def next_page(self):
+        self.frame_model_naming.reset_color()
+        self.frame_parameters.reset_color()
+
+        if not self.frame_parameters.check_parameters():
+            return
+        if not self.frame_model_naming.check_name():
+            return
+
+        model_name = self.frame_model_naming.get()
+        parameters = self.frame_parameters.get()
+
         dataset_name = self.frame_dataset.get()
         if dataset_name == "":
             return
 
-        model_class = importlib.import_module(self.path_nn)
+        path_nn = self.frame_nn.get()
+        # src.nn1(2)d.nn_name
+        module = str(path_nn.parts[-3]).replace("/", ".")
+        model_class = importlib.import_module(module)
 
-        self.controller.frames["TrainingPage"].set_model(
-            model_class, self.dimension, model_class.__name__, dataset_name
-        )
+        self.controller.frames["TrainingPage"].set_args()
         self.controller.show_frame("TrainingPage")
-
-
-class NNFrame(ctk.CTkFrame):
-    def __init__(self, parent):
-        super().__init__(parent)
-
-    def init(self, path_nn: Path | str):
-        """Динамическое создание фрейма
-
-        Args:
-            path_nn (Path | str): путь к реализации класса нейронной сети
-        """
-        pass
 
 
 class ParametersFrame(ctk.CTkFrame):
@@ -107,9 +105,9 @@ class ParametersFrame(ctk.CTkFrame):
         self.title = ctk.CTkLabel(
             self, text="Параметры", fg_color="gray30", corner_radius=6
         )
-        self.title.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+        self.title.grid(row=0, column=0, padx=10, pady=10, sticky="ew", columnspan=2)
 
-        for i, param in enumerate(self.parameters, start=1):
+        for i, param in enumerate(self.entry_parameters, start=1):
             label = ctk.CTkLabel(self, text=param)
             label.grid(row=i, column=0, padx=(20, 10), pady=20, sticky="ew")
 
@@ -131,10 +129,6 @@ class ParametersFrame(ctk.CTkFrame):
         self.default_color = self.entry_parameters["batch_size"].cget("fg_color")
 
     def check_parameters(self):
-        for entry in self.entry_parameters.value():
-            if isinstance(entry, ctk.CTkEntry):
-                entry.configure(fg_color=self.default_color)
-
         for param, entry in self.entry_parameters.items():
             value = entry.get()
             if param == "epochs" or param == "batch_size":
@@ -152,8 +146,44 @@ class ParametersFrame(ctk.CTkFrame):
                     entry.configure(fg_color="red")
                     return False
 
-    def get_parameters(self):
-        return self.entry_parameters
+        return True
+
+    def reset_color(self):
+        for entry in self.entry_parameters.values():
+            if isinstance(entry, ctk.CTkEntry):
+                entry.configure(fg_color=self.default_color)
+
+    def get(self):
+        return {
+            parameter: entry.get() for parameter, entry in self.entry_parameters.items()
+        }
+
+
+class NNFrame(ctk.CTkFrame):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+    def init(self, path_nn: Path | str):
+        """Динамическое создание фрейма
+
+        Args:
+            path_nn (Path | str): путь к реализации класса нейронной сети
+        """
+        self.path_nn = Path(path_nn)
+        self.label = ctk.CTkLabel(
+            self, text=self.path_nn.stem, fg_color="gray30", corner_radius=6
+        )
+        self.label.grid(row=0, column=0, padx=20, pady=20, sticky="ew", columnspan=2)
+
+        self.button_open_nn = ctk.CTkButton(
+            self, text="Открыть код", command=lambda: os.startfile(self.path_nn)
+        )
+        self.button_open_nn.grid(
+            row=1, column=0, padx=20, pady=20, sticky="ew", columnspan=2
+        )
+
+    def get(self):
+        return self.path_nn
 
 
 class DatasetFrame(ctk.CTkFrame):
@@ -190,5 +220,53 @@ class DatasetFrame(ctk.CTkFrame):
             radiobutton.grid(row=1, column=i, padx=5, pady=5, sticky="ew")
             self.radiobuttons.append(radiobutton)
 
-    def get_dataset(self):
-        return self.variable
+    def get(self):
+        return self.variable.get()
+
+
+class ModelNamingFrame(ctk.CTkFrame):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        self.path_model = Path(PROJECT_ROOT, "models")
+        self.path_reports = Path(PROJECT_ROOT, "reports")
+
+        self.label_name = ctk.CTkLabel(self, text="Назовите модель: ")
+        self.label_name.grid(row=0, column=2, padx=20, pady=10, sticky="ew")
+
+        self.entry_name = ctk.CTkEntry(self)
+        self.entry_name.grid(row=0, column=3, padx=20, pady=10, sticky="ew")
+
+        self.label_name_status = ctk.CTkLabel(self, text="")
+        self.label_name_status.grid(row=1, column=3, padx=20, pady=10, sticky="ew")
+
+        self.default_color = self.entry_name.cget("fg_color")
+
+    def check_name(self):
+        name = self.entry_name.get()
+
+        if name == "":
+            self.label_name_status.configure(text="Название не может быть пустым")
+            self.entry_name.configure(fg_color="red")
+            return False
+        if name in self.path_model.iterdir():
+            self.label_name_status.configure(
+                text="Модель с таким именем уже существует"
+            )
+            self.entry_name.configure(fg_color="red")
+            return False
+        if name in self.path_reports.iterdir():
+            self.label_name_status.configure(
+                text="Модель с таким именем уже существует"
+            )
+            self.entry_name.configure(fg_color="red")
+            return False
+
+        return True
+
+    def reset_color(self):
+        self.label_name_status.configure(text="")
+        self.entry_name.configure(fg_color=self.default_color)
+
+    def get(self):
+        return self.entry_name.get()

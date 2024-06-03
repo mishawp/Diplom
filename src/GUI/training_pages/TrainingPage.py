@@ -19,18 +19,14 @@ class TrainingPage(ctk.CTkFrame):
         self.button_back = ctk.CTkButton(
             self,
             text="Назад",
-            command=lambda: controller.show_frame("HyperparametersPage"),
+            command=lambda: controller.show_frame("ParametersPage"),
         )
         self.button_back.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
 
-        self.label = ctk.CTkButton(
-            self, text="Обучить модель", command=self.start_training
-        )
+        self.label = ctk.CTkButton(self, text="Обучить модель", command=self.start)
         self.label.grid(row=2, column=0, padx=20, pady=20, sticky="ew", columnspan=4)
 
-    def set_model(
-        self, model, dimension, model_name, dataset_name, params_nn, params_other
-    ):
+    def set_args(self, **kwargs):
         """Принимает с предыдущей страницы данные
 
         Args:
@@ -41,14 +37,10 @@ class TrainingPage(ctk.CTkFrame):
             params_nn (dict[str: value]): параметры нейронной сети в виде словаря
             params_other (dict[str: value]): параметры обучения в виде словаря
         """
-        self.model = model
-        self.dimension = dimension
-        self.model_name = model_name
-        self.dataset_name = dataset_name
-        self.params_nn = params_nn
-        self.params_other = params_other
+        print(kwargs)
+        pass
 
-    def start_training(self):
+    def start(self):
         for frame_name, frame in self.controller.frames.items():
             if frame_name != "TrainingPage":
                 frame.destroy()

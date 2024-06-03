@@ -4,7 +4,7 @@ from .MainMenu import MainMenu
 from .training_pages import (
     DataProcessingPage,
     NNSelectionPage,
-    HyperparametersPage,
+    ParametersPage,
     TrainingPage,
 )
 from .predict_pages import PredictPage
@@ -14,7 +14,7 @@ class MainApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("ECG Classification")
-        self.geometry("1600x800")
+        self.geometry("1400x900")
         self.grid_columnconfigure(0, weight=1)
 
         self.frames = {}
@@ -23,7 +23,7 @@ class MainApp(ctk.CTk):
             DataProcessingPage,
             PredictPage,
             NNSelectionPage,
-            HyperparametersPage,
+            ParametersPage,
             TrainingPage,
         ):
             page_name = F.__name__
