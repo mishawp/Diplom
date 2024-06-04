@@ -28,15 +28,15 @@ def set_seed(seed: int):
 
 def set_device(device: str):
     if device == "cpu":
-        torch.device("cpu")
+        torch.set_default_device("cpu")
         return
 
     if device == "cuda" and torch.cuda.is_available():
-        torch.device("cuda")
+        torch.set_default_device("cuda")
         return
 
     if device == "mps" and torch.backends.mps.is_available():
-        torch.device("mps")
+        torch.set_default_device("mps")
         return
 
     raise DeviceError(

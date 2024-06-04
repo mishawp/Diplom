@@ -30,7 +30,7 @@ class TrainingPage(ctk.CTkFrame):
         """Принимает с предыдущей страницы данные
 
         Args:
-            model (nn.Module): модель нейронной сети
+            model (type(nn.Module)): модель нейронной сети
             dimension (int): размерность входных данных
             model_name (str): имя, которая будет дана модели
             dataset_name (str): название датасета
