@@ -10,7 +10,8 @@ from typing import Callable
 
 from .dataset import MyDataset
 from .config_run import set_seed, set_device
-from .metrics import calculate_tptnfpfn, calculate_all_tptnfpfn, calculate_metrics
+from .metrics import compute_tptnfpfn, compute_all_tptnfpfn, compute_metrics
+from ploting import save_plot
 
 project_path = os.getenv("project_root")
 
@@ -88,13 +89,20 @@ def main_training(
     # https://pytorch.org/docs/stable/generated/torch.nn.BCEWithLogitsLoss.html
 
     # эпохи в виде массива, для дальнейшего plot
-    epochs = torch.arange(1, parameters["epochs"] + 1)
+    epochs = np.arange(1, parameters["epochs"] + 1)
+    statistics = pd.DataFrame(
+        data=np.zeros((parameters["epochs"], 4)),
+        index=epochs,
+        columns=("Training-loss", "Validation-loss", "Sensitivity", "Specificity"),
+    )
     # потери за каждый батч
-    train_losses = np.zeros(np.ceil(meta["n_train"] // parameters["batch_size"]))
-    # Среднии потери за каждую эпоху
-    train_mean_losses = np.zeros(parameters["epochs"])
+    train_losses = np.zeros(np.ceil(meta["n_train"] / dataloader_train.batch_size))
+
+    # best_model_dev_loss = (model, float("inf"))
+    best_model_sensitivity = (model, 0)
     for epoch in epochs:
         bar(f"Epoch {epoch}")
+
         train_losses[:] = 0
         for i, (X, label) in enumerate(dataloader_train):
             loss = train_batch(X, label, model, optimizer, loss_function)
@@ -105,9 +113,59 @@ def main_training(
 
             train_losses[i] = loss
 
-        mean_loss = train_losses.mean().item()
-        bar(f"Epoch {epoch} loss: {mean_loss}")
-        train_mean_losses[epoch - 1] = mean_loss
+        train_mean_loss = train_losses.mean().item()
+        dev_mean_loss = compute_dev_loss(
+            model, dataloader_dev, loss_function, meta["n_dev"]
+        )
+        statistics[epoch]["Training-loss"] = train_mean_loss
+        statistics[epoch]["Validation-loss"] = dev_mean_loss
+        quality_metrics = evaluate(model, dataloader_dev, meta["labels"].values())
+        statistics[epoch]["Sensitivity"] = quality_metrics["all"]["Sensitivity"]
+        statistics[epoch]["Specificity"] = quality_metrics["all"]["Specificity"]
+
+        bar(f"Epoch {epoch} loss: {train_mean_loss}")
+        bar(f"Valid sensitivity: {quality_metrics["all"]["Sensitivity"]:.4f}")
+        bar(f"Valid specificity: {quality_metrics["all"]["Specificity"]:.4f}")
+
+        # if dev_mean_loss < best_model_dev_loss[1]:
+        #     best_model_dev_loss = (model, dev_mean_loss)
+        if quality_metrics["all"]["Specificity"] > best_model_sensitivity[1]:
+            best_model_sensitivity = (model, quality_metrics["all"]["Specificity"])
+
+    # Сохраняем модель
+    path_save_model = Path(project_path, "models")
+    torch.save(
+        best_model_sensitivity[0].state_dict(), path_save_model / f"{model_name}.pth"
+    )
+
+    # Сохраняем эпохи обучения
+    path_reports = Path(project_path, "reports")
+    statistics.to_csv(path_reports / f"{model_name}_training_report.csv")
+
+    # Тестирование на тестовой выборке
+    test_quality_metrics = evaluate(
+        best_model_sensitivity[0], dataloader_test, meta["labels"].values()
+    )
+    test_quality_metrics.to_csv(path_reports / f"{model_name}_test_report.csv")
+
+    save_plot(
+        statistics["Training-loss"],
+        "Training-Loss",
+        path_reports,
+        f"{model_name}_training_loss",
+    )
+    save_plot(
+        statistics["Sensitivity"],
+        "Sensitivity",
+        path_reports,
+        f"{model_name}_sensitivity",
+    )
+    save_plot(
+        statistics["Specificity"],
+        "Specificity",
+        path_reports,
+        f"{model_name}_specificity",
+    )
 
 
 def train_batch(
@@ -131,6 +189,40 @@ def train_batch(
     return loss.item()
 
 
+def compute_dev_loss(
+    model: nn.Module,
+    dataloader: DataLoader,
+    loss_function: nn.BCEWithLogitsLoss,
+    n_dev: int,
+) -> float:
+    """Вычисление потерь на валидационном датасете
+
+    Args:
+        model (nn.Module): модель
+        dataloader (DataLoader): датасет
+        loss_function (nn.BCEWithLogitsLoss): функция потерь
+        dev_int (int): количество образцов в валидационном датасете
+
+    Returns:
+        float: потери
+    """
+    model.eval()
+    with torch.no_grad():
+        dev_losses = [np.zeros(np.ceil(n_dev / dataloader.batch_size))]
+        for i, (X, label) in enumerate(dataloader):
+            print("eval {} of {}".format(i + 1, len(dataloader)), end="\r")
+            y_pred = model(X)
+            loss = loss_function(y_pred, label)
+            dev_losses.append(loss.item())
+            del X
+            del label
+            torch.cuda.empty_cache()
+
+    model.train()
+
+    return np.mean(dev_losses)
+
+
 def predict(model: nn.Module, X: torch.Tensor) -> np.ndarray:
     """Предсказание модели
 
@@ -149,27 +241,30 @@ def predict(model: nn.Module, X: torch.Tensor) -> np.ndarray:
     return (probabilities > 0.5).numpy()
 
 
-def evaluate(model: nn.Module, dataloader: DataLoader, diagnostic_classes: tuple[str]):
+def evaluate(
+    model: nn.Module, dataloader: DataLoader, diagnostic_classes: tuple[str]
+) -> pd.DataFrame:
     """Оценка качества модели
 
     Args:
         model (nn.Module): модель
         dataloader (DataLoader): dev_dataloader or test_dataloader
         diagnostic_classes (tuple[str]): классы диагнозов meta["labels"] = {0: "MI", 1: "STTC", 2: "CD", 3: "HYP"}
+
+    Returns:
+        pd.DataFrame:
+        |      | TP | TN | FP | FN | Sensitivity | Specificity | G-mean |
+        |------|----|----|----|----|-------------|-------------|--------|
+        | MI   |    |    |    |    |             |             |        |
+        | STTC |    |    |    |    |             |             |        |
+        | CD   |    |    |    |    |             |             |        |
+        | HYP  |    |    |    |    |             |             |        |
+        | all  |    |    |    |    |             |             |        |
     """
     # Перевод модели в режим оценки
     model.eval()
     # Отключение вычисления градиентов
     with torch.no_grad():
-        """ 
-            |      | TP | TN | FP | FN | Sensitivity | Specificity | G-mean |
-            |------|----|----|----|----|-------------|-------------|--------|
-            | MI   |    |    |    |    |             |             |        |
-            | STTC |    |    |    |    |             |             |        |
-            | CD   |    |    |    |    |             |             |        |
-            | HYP  |    |    |    |    |             |             |        |
-            | all  |    |    |    |    |             |             |        |
-        """
         diagnostic_classes += ("all",)
         quality_metrics = pd.DataFrame(
             data=np.zeros((len(diagnostic_classes), 7)),
@@ -183,14 +278,14 @@ def evaluate(model: nn.Module, dataloader: DataLoader, diagnostic_classes: tuple
             # метки
             y_true = label.cpu().numpy()
 
-            quality_metrics = calculate_tptnfpfn(y_predict, y_true, quality_metrics)
+            quality_metrics = compute_tptnfpfn(y_predict, y_true, quality_metrics)
 
             # Очистка памяти
             del X
             del label
             torch.cuda.empty_cache()
-    quality_metrics = calculate_all_tptnfpfn(quality_metrics)
-    quality_metrics = calculate_metrics(quality_metrics)
+    quality_metrics = compute_all_tptnfpfn(quality_metrics)
+    quality_metrics = compute_metrics(quality_metrics)
     # Возврат модели в режим обучения
     model.train()
 

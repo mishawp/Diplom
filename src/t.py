@@ -1,14 +1,15 @@
-import torch
+import matplotlib.pyplot as plt
 import pandas as pd
-import numpy as np
 
-torch.set_default_device("cuda")
 
-tensor1 = torch.tensor([0])
-tensor2 = torch.tensor([1])
+def plot(plottable, ylabel="", name=""):
+    plt.clf()
+    plt.xlabel("Epoch")
+    plt.ylabel(ylabel)
+    plt.plot(plottable)
+    plt.savefig("%s.pdf" % (name), bbox_inches="tight")
 
-arr = np.array([[0, 0], [0, 0]])
-fr = pd.DataFrame(arr, index=["a", "b"], columns=["1", "2"])
-fr.iloc[0]["1"] += ((tensor1[0] == 0) & (tensor2[0] == 1)).item()
 
-print(fr)
+fr = pd.DataFrame(data=[[0, 0], [1, 0], [0, 0]], index=[1, 2, 3], columns=["1", "2"])
+
+fr["1"].plot(kind="bar")

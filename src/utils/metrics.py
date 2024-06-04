@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 
-def calculate_tptnfpfn(
+def compute_tptnfpfn(
     y_predict: np.ndarray, y_true: np.ndarray, quality_metrics: pd.DataFrame
 ):
     """Вычисление метрик TP | TN | FP | FN для каждого класса в метке.
@@ -40,7 +40,7 @@ def calculate_tptnfpfn(
     return quality_metrics
 
 
-def calculate_all_tptnfpfn(quality_metrics: pd.DataFrame):
+def compute_all_tptnfpfn(quality_metrics: pd.DataFrame):
     """Вычисление метрик общего кол-ва TP | TN | FP | FN (строка 'all').
 
     Args:
@@ -61,7 +61,7 @@ def calculate_all_tptnfpfn(quality_metrics: pd.DataFrame):
     return quality_metrics
 
 
-def calculate_metrics(quality_metrics: pd.DataFrame):
+def compute_metrics(quality_metrics: pd.DataFrame):
     """Вычисление метрик Sensitivity | Specificity | G-mean для каждого класса в метке.
 
     Args:
