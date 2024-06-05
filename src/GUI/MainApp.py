@@ -6,6 +6,7 @@ from .training_pages import (
     NNSelectionPage,
     ParametersPage,
     TrainingPage,
+    ResultsPage,
 )
 from .predict_pages import PredictPage
 
@@ -25,6 +26,7 @@ class MainApp(ctk.CTk):
             NNSelectionPage,
             ParametersPage,
             TrainingPage,
+            ResultsPage,
         ):
             page_name = F.__name__
             frame = F(controller=self)

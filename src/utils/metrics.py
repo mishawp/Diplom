@@ -80,7 +80,44 @@ def compute_metrics(quality_metrics: pd.DataFrame):
         quality_metrics["TN"] + quality_metrics["FP"] + 0.0001
     )
     quality_metrics["G-mean"] = np.sqrt(
-        (quality_metrics["Sensitivity"] + quality_metrics["Specificity"])
+        (quality_metrics["Sensitivity"] * quality_metrics["Specificity"])
     )
+
+    return quality_metrics
+
+
+def percentage(quality_metrics: pd.DataFrame):
+    """Представление метрик в процентах
+
+    Args:
+        quality_metrics (pd.DataFrame):
+    Args:
+        quality_metrics (pd.DataFrame): Таблица вида
+
+        |      | TP | TN | FP | FN | Sensitivity | Specificity | G-mean |
+        |------|----|----|----|----|-------------|-------------|--------|
+        | MI   |    |    |    |    |             |             |        |
+        | STTC |    |    |    |    |             |             |        |
+        | CD   |    |    |    |    |             |             |        |
+        | HYP  |    |    |    |    |             |             |        |
+        | all  |    |    |    |    |             |             |        |
+    Returns:
+        pd.DataFrame: обновленный quality_metrics
+    """
+    quality_metrics["TP"] = np.round(
+        quality_metrics["TP"] / quality_metrics.loc["all", "TP"] * 100, 2
+    )
+    quality_metrics["TN"] = np.round(
+        quality_metrics["TN"] / quality_metrics.loc["all", "TN"] * 100, 2
+    )
+    quality_metrics["FP"] = np.round(
+        quality_metrics["FP"] / quality_metrics.loc["all", "FP"] * 100, 2
+    )
+    quality_metrics["FN"] = np.round(
+        quality_metrics["FN"] / quality_metrics.loc["all", "FN"] * 100, 2
+    )
+    quality_metrics["Sensitivity"] = np.round(quality_metrics["Sensitivity"] * 100, 2)
+    quality_metrics["Specificity"] = np.round(quality_metrics["Specificity"] * 100, 2)
+    quality_metrics["G-mean"] = np.round(quality_metrics["G-mean"] * 100, 2)
 
     return quality_metrics

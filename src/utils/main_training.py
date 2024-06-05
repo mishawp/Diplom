@@ -10,8 +10,8 @@ from typing import Callable
 
 from .dataset import MyDataset
 from .config_run import set_seed, set_device
-from .metrics import compute_tptnfpfn, compute_all_tptnfpfn, compute_metrics
-from .ploting import save_plot
+from .metrics import compute_tptnfpfn, compute_all_tptnfpfn, compute_metrics, percentage
+from .plotting import save_plot
 
 project_path = os.getenv("project_root")
 
@@ -129,6 +129,14 @@ def start_training(
         if quality_metrics.at["all", "Specificity"] > best_model_sensitivity[1]:
             best_model_sensitivity = (model, quality_metrics.at["all", "Specificity"])
 
+    # Тестирование на тестовой выборке
+    test_quality_metrics = evaluate(
+        best_model_sensitivity[0],
+        dataloader_test,
+        meta["labels"].values(),
+        device,
+    )
+
     # Сохраняем модель
     path_save_model = Path(project_path, "models", model_name)
     path_save_model.mkdir(parents=True, exist_ok=True)
@@ -141,23 +149,29 @@ def start_training(
         path_save_model / f"{model_name}_min_loss.pth",
     )
 
-    # Сохраняем эпохи обучения
+    # Сохраняем результаты
     path_reports = Path(project_path, "reports", model_name)
     path_reports.mkdir(parents=True, exist_ok=True)
-    statistics.to_csv(path_reports / "training_report.csv")
 
-    # Тестирование на тестовой выборке
-    test_quality_metrics = evaluate(
-        best_model_sensitivity[0],
-        dataloader_test,
-        meta["labels"].values(),
-        device,
+    statistics.to_html(
+        path_reports / "training_report.html",
+        index=True,
+        col_space=100,
+        float_format=lambda x: f"{x*100:.2f}%",
+        justify="left",
     )
-    test_quality_metrics.to_csv(path_reports / "test_report.csv")
 
+    test_quality_metrics = percentage(test_quality_metrics)
+    test_quality_metrics.to_html(
+        path_reports / "test_report.html",
+        index=True,
+        col_space=100,
+        float_format=lambda x: f"{x}%",
+        justify="left",
+    )
     save_plot(
         statistics["Training-loss"],
-        "Training-Loss",
+        f"Training-Validation-Loss-{parameters['optimizer']}-{parameters['learning_rate']}",
         path_reports,
         "training_loss",
     )
