@@ -23,8 +23,6 @@ def start_training(
     dataset_name: str,
     parameters: dict,
     model_parameters: dict = {},
-    device: str = "cuda",
-    bar: Callable[[str], None] = print,
 ):
     """Основная функция запуска обучения и тестирования модели.
     Включает в себя:
@@ -34,13 +32,12 @@ def start_training(
         dimension (int): размерность входных данных
         model_name (str): имя, под которым будет сохранена обученная модель
         dataset_name (str): имя датасета, из которого будут загружены данные
-        parameters (dict): гиперпараметры обучения в виде словаря (epochs, batch_size, learning_rate, l2_decay, optimizer: str = ["adam", "sgd"])
-        device (str, optional): устройство. Defaults to "cuda".
-        bar (Callable[[str], None], optional): выводит прогресс обучения. Defaults to print.
-        **kwargs: Параметры класса модели
+        parameters (dict): гиперпараметры обучения в виде словаря (epochs, batch_size, learning_rate, l2_decay, optimizer: str = ["adam", "sgd"], device: str = ["cuda", "cpu", "mps"])
+        model_parameters (dict): Параметры класса модели
     """
 
     # meta.keys() = (n_sig, fs, n_classes, labels, n_MI, n_STTC, n_CD, n_HYP, n_train_dev_test, n_train, n_dev, n_test)
+    device = parameters["device"]
     meta = Path(
         project_path, "data", "processed", f"{dimension}D", dataset_name, "meta.pkl"
     )
@@ -100,7 +97,7 @@ def start_training(
     best_model_dev_loss = (model, float("inf"))
     best_model_sensitivity = (model, 0)
     for epoch in epochs:
-        bar(f"Epoch {epoch}")
+        print(f"Epoch {epoch}")
 
         train_losses[:] = 0
         for i, (X, label) in enumerate(dataloader_train):
@@ -123,9 +120,9 @@ def start_training(
         statistics.at[epoch, "Sensitivity"] = quality_metrics.at["all", "Sensitivity"]
         statistics.at[epoch, "Specificity"] = quality_metrics.at["all", "Specificity"]
 
-        bar(f"Epoch {epoch} loss: {train_mean_loss}")
-        bar(f"Valid sensitivity: {quality_metrics.at["all","Sensitivity"]:.4f}")
-        bar(f"Valid specificity: {quality_metrics.at["all", "Specificity"]:.4f}")
+        print(f"Epoch {epoch} loss: {train_mean_loss}")
+        print(f"Valid sensitivity: {quality_metrics.at["all","Sensitivity"]:.4f}")
+        print(f"Valid specificity: {quality_metrics.at["all", "Specificity"]:.4f}")
 
         if dev_mean_loss < best_model_dev_loss[1]:
             best_model_dev_loss = (model, dev_mean_loss)

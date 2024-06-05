@@ -9,7 +9,7 @@ class GRU(nn.Module):
         hidden_size: int = 200,
         num_layers: int = 2,
         dropout: float = 0.3,
-        device=None,
+        device="cuda",
     ):
         """
         Define the layers of the model

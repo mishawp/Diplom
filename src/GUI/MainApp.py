@@ -19,7 +19,7 @@ class MainApp(ctk.CTk):
 
         self.frames = {}
         for F in (
-            MainMenu,
+            # MainMenu,
             DataProcessingPage,
             PredictPage,
             NNSelectionPage,
@@ -31,7 +31,8 @@ class MainApp(ctk.CTk):
             self.frames[page_name] = frame
             frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
-        self.show_frame("MainMenu")
+        # self.show_frame("MainMenu")
+        self.show_frame("DataProcessingPage")
 
     def show_frame(self, page_name):
         for frame in self.frames.values():

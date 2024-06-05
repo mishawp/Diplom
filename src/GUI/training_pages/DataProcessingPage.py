@@ -25,10 +25,10 @@ class DataProcessingPage(ctk.CTkFrame):
         )
         self.label.grid(row=0, column=0, padx=20, pady=20, sticky="ew", columnspan=4)
 
-        self.button_back = ctk.CTkButton(
-            self, text="Назад", command=lambda: controller.show_frame("MainMenu")
-        )
-        self.button_back.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
+        # self.button_back = ctk.CTkButton(
+        #     self, text="Назад", command=lambda: controller.show_frame("MainMenu")
+        # )
+        # self.button_back.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
 
         self.window_download = None
         self.button_download = ctk.CTkButton(

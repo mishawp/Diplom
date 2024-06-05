@@ -18,7 +18,6 @@ if __name__ == "__main__":
         "learning_rate": 0.01,
         "l2_decay": 0.0,
         "optimizer": "adam",
+        "device": "cuda",
     }
-    start_training(
-        GRU, 1, "gru", "my_data", parameters, model_parameters, "cuda", bar=print
-    )
+    start_training(GRU, 1, "gru", "my_data", parameters, model_parameters)

@@ -74,10 +74,10 @@ def compute_metrics(quality_metrics: pd.DataFrame):
         pd.DataFrame: обновленный quality_metrics
     """
     quality_metrics["Sensitivity"] = quality_metrics["TP"] / (
-        quality_metrics["TP"] + quality_metrics["FN"]
+        quality_metrics["TP"] + quality_metrics["FN"] + 0.0001
     )
     quality_metrics["Specificity"] = quality_metrics["TN"] / (
-        quality_metrics["TN"] + quality_metrics["FP"]
+        quality_metrics["TN"] + quality_metrics["FP"] + 0.0001
     )
     quality_metrics["G-mean"] = np.sqrt(
         (quality_metrics["Sensitivity"] + quality_metrics["Specificity"])

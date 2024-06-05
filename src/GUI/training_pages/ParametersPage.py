@@ -63,7 +63,8 @@ class ParametersPage(ctk.CTkFrame):
         self.frame_dataset.init(kwargs["dimension"])
 
     def prev_page(self):
-        self.frame_dataset.destroy()
+        for widget in self.frame_dataset.winfo_children():
+            widget.destroy()
         self.controller.show_frame("NNSelectionPage")
 
     def next_page(self):
@@ -83,11 +84,17 @@ class ParametersPage(ctk.CTkFrame):
             return
 
         path_nn = self.frame_nn.get()
-        # src.nn1(2)d.nn_name
-        module = str(path_nn.parts[-3]).replace("/", ".")
-        model_class = importlib.import_module(module)
+        # src.nn1(2)d
+        module = ".".join(path_nn.parts[-3:-1])
+        model_class = getattr(importlib.import_module(module), path_nn.stem)
 
-        self.controller.frames["TrainingPage"].set_args()
+        self.controller.frames["TrainingPage"].set_args(
+            model_class=model_class,
+            dimension=self.kwargs["dimension"],
+            model_name=model_name,
+            dataset_name=dataset_name,
+            parameters=parameters,
+        )
         self.controller.show_frame("TrainingPage")
 
 
@@ -95,12 +102,11 @@ class ParametersFrame(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent)
         self.grid_columnconfigure(0, weight=1)
-        self.label_parameters = {}.fromkeys(
-            ("epochs", "batch_size", "learning_rate", "l2_decay", "optimizer")
+        self.parameters = {}.fromkeys(
+            ("epochs", "batch_size", "learning_rate", "l2_decay", "optimizer", "device")
         )
-        self.entry_parameters = {}.fromkeys(
-            ("epochs", "batch_size", "learning_rate", "l2_decay", "optimizer")
-        )
+        self.label_parameters = {}.fromkeys(self.parameters.keys())
+        self.entry_parameters = {}.fromkeys(self.parameters.keys())
 
         self.title = ctk.CTkLabel(
             self, text="Параметры", fg_color="gray30", corner_radius=6
@@ -119,6 +125,14 @@ class ParametersFrame(ctk.CTkFrame):
                     variable=self.var_optimizer,
                 )
                 entry.grid(row=i, column=1, padx=(10, 20), pady=20, sticky="ew")
+            elif param == "device":
+                self.var_device = ctk.StringVar(value="cuda")
+                entry = ctk.CTkOptionMenu(
+                    self,
+                    values=["cuda", "cpu", "mps"],
+                    variable=self.var_device,
+                )
+                entry.grid(row=i, column=1, padx=(10, 20), pady=20, sticky="ew")
             else:
                 entry = ctk.CTkEntry(self)
                 entry.grid(row=i, column=1, padx=(10, 20), pady=20, sticky="ew")
@@ -135,6 +149,8 @@ class ParametersFrame(ctk.CTkFrame):
                 if not value.isdigit():
                     entry.configure(fg_color="red")
                     return False
+                else:
+                    self.parameters[param] = int(value)
             elif param == "learning_rate" or param == "l2_decay":
                 try:
                     value = float(value)
@@ -145,7 +161,10 @@ class ParametersFrame(ctk.CTkFrame):
                 if not (0 <= value <= 1):
                     entry.configure(fg_color="red")
                     return False
-
+                else:
+                    self.parameters[param] = float(value)
+        self.parameters["optimizer"] = self.var_optimizer.get()
+        self.parameters["device"] = self.var_device.get()
         return True
 
     def reset_color(self):
@@ -154,9 +173,7 @@ class ParametersFrame(ctk.CTkFrame):
                 entry.configure(fg_color=self.default_color)
 
     def get(self):
-        return {
-            parameter: entry.get() for parameter, entry in self.entry_parameters.items()
-        }
+        return self.parameters
 
 
 class NNFrame(ctk.CTkFrame):
