@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 
 def save_plot(x_y, ylabel, path, name):
@@ -14,4 +15,4 @@ def save_plot(x_y, ylabel, path, name):
     plt.xlabel("Epoch")
     plt.ylabel(ylabel)
     plt.plot(x_y)
-    plt.savefig(f"{name}.pdf", bbox_inches="tight")
+    plt.savefig(Path(path, f"{name}.png"), bbox_inches="tight")

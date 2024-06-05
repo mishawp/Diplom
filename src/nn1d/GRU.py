@@ -33,7 +33,7 @@ class GRU(nn.Module):
             num_layers,
             dropout=dropout,
             batch_first=True,
-            bidirectional=self.bidirectional - 1,
+            bidirectional=(self.bidirectional == 2),
         )
 
         # 4 - на число классов
@@ -46,12 +46,14 @@ class GRU(nn.Module):
         Args:
             X: batch of training examples with dimension (batch_size, 1000, 3)
         """
-        # initial hidden state:
+        # initial hidden state:\
+        X = X.to(self.device)
         h_0 = torch.zeros(
-            self.num_layers * self.bidirectional, X.size(0), self.hidden_size
+            self.num_layers * self.bidirectional,
+            X.size(0),
+            self.hidden_size,
         ).to(self.device)
-
-        out_gru, _ = self.gru(X.to(self.device), h_0)
+        out_gru, _ = self.gru(X, h_0)
         # out_rnn shape: (batch_size, seq_length, hidden_size*bidirectional) = (batch_size, 1000, hidden_size*bidirectional)
 
         # last timestep

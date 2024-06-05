@@ -1,3 +1,3 @@
-from .GRU import GRU, GRUCreator
+from .GRU import GRU
 
-__all__ = ["GRU", "GRUCreator"]
+__all__ = ["GRU"]

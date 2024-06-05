@@ -23,19 +23,15 @@ def compute_tptnfpfn(
         pd.DataFrame: обновленный quality_metrics
     """
     for prediction, true in zip(y_predict, y_true):
-        for i in range(len(quality_metrics)):
-            quality_metrics.iloc[i]["TP"] += (
-                prediction[i] == 1 and true[i] == 1
-            ).item()
-            quality_metrics.iloc[i]["TN"] += (
-                prediction[i] == 0 and true[i] == 0
-            ).item()
-            quality_metrics.iloc[i]["FP"] += (
-                prediction[i] == 1 and true[i] == 0
-            ).item()
-            quality_metrics.iloc[i]["FN"] += (
-                prediction[i] == 0 and true[i] == 1
-            ).item()
+        for i in range(len(prediction)):
+            if prediction[i] == 1 and true[i] == 1:
+                quality_metrics.iat[i, 0] += 1
+            elif prediction[i] == 0 and true[i] == 0:
+                quality_metrics.iat[i, 1] += 1
+            elif prediction[i] == 1 and true[i] == 0:
+                quality_metrics.iat[i, 2] += 1
+            elif prediction[i] == 0 and true[i] == 1:
+                quality_metrics.iat[i, 3] += 1
 
     return quality_metrics
 
@@ -56,7 +52,7 @@ def compute_all_tptnfpfn(quality_metrics: pd.DataFrame):
         pd.DataFrame: обновленный quality_metrics
     """
     for column in quality_metrics.columns:
-        quality_metrics["all"][column] = quality_metrics[column].sum()
+        quality_metrics.at["all", column] = quality_metrics[column].sum()
 
     return quality_metrics
 
@@ -77,9 +73,14 @@ def compute_metrics(quality_metrics: pd.DataFrame):
     Returns:
         pd.DataFrame: обновленный quality_metrics
     """
-    for row in quality_metrics:
-        row["Sensitivity"] = row["TP"] / (row["TP"] + row["FN"])
-        row["Specificity"] = row["TN"] / (row["TN"] + row["FP"])
-        row["G-mean"] = np.sqrt((row["Sensitivity"] + row["Specificity"]))
+    quality_metrics["Sensitivity"] = quality_metrics["TP"] / (
+        quality_metrics["TP"] + quality_metrics["FN"]
+    )
+    quality_metrics["Specificity"] = quality_metrics["TN"] / (
+        quality_metrics["TN"] + quality_metrics["FP"]
+    )
+    quality_metrics["G-mean"] = np.sqrt(
+        (quality_metrics["Sensitivity"] + quality_metrics["Specificity"])
+    )
 
     return quality_metrics

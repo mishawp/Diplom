@@ -46,4 +46,4 @@ class MyDataset(Dataset):
         X = np.load(Path(self.path_data_X_part, f"{idx}.npy"))
         label = np.load(Path(self.path_data_labels_part, f"{idx}.npy"))
 
-        return torch.from_numpy(X), torch.from_numpy(label)
+        return torch.tensor(X).float(), torch.tensor(label).float()
