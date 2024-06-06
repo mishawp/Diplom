@@ -3,10 +3,10 @@ import pickle
 import numpy as np
 import pandas as pd
 import torch
+import inspect
 from torch import nn
 from torch.utils.data import DataLoader
 from pathlib import Path
-from typing import Callable
 
 from .dataset import MyDataset
 from .config_run import set_seed, set_device
@@ -47,7 +47,7 @@ def start_training(
     # установка устройства, на котором запускается обучение
     set_device(device)
     # установка seed на все модули рандома
-    set_seed(42)
+    set_seed(142)
 
     model = model_class(**model_parameters).to(device)
     dataset_train = MyDataset(dataset_name, dimension, "train", meta["n_train"])
@@ -131,7 +131,7 @@ def start_training(
 
     # Тестирование на тестовой выборке
     test_quality_metrics = evaluate(
-        best_model_sensitivity[0],
+        best_model_dev_loss[0],
         dataloader_test,
         meta["labels"].values(),
         device,
@@ -187,6 +187,21 @@ def start_training(
         path_reports,
         "specificity",
     )
+
+    # Сохраняем параметры запуска модели
+    with open(path_reports / "parameters.txt", "w") as f:
+        if not model_parameters:
+            model_parameters = {
+                k: value.default
+                for k, value in inspect.signature(model).parameters.items()
+            }
+        print(
+            f"parameters\n{parameters}",
+            f"model_parameters\n{model_parameters}",
+            model_parameters,
+            sep="\n\n",
+            file=f,
+        )
 
 
 def train_batch(

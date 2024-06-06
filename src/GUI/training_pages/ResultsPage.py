@@ -11,12 +11,10 @@ class ResultsPage(ctk.CTkFrame):
         self.controller = controller
         self.grid_rowconfigure((0, 1, 2, 3), weight=1)
 
-        self.button_start = ctk.CTkLabel(
+        self.label = ctk.CTkLabel(
             self, text="Результаты обучения", fg_color="gray30", corner_radius=6
         )
-        self.button_start.grid(
-            row=0, column=0, padx=20, pady=20, sticky="ew", columnspan=4
-        )
+        self.label.grid(row=0, column=0, padx=20, pady=20, sticky="ew", columnspan=4)
 
         self.button_back = ctk.CTkButton(
             self,

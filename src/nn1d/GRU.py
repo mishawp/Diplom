@@ -1,3 +1,4 @@
+# https://github.com/HemaxiN/DL_ECG_Classification/blob/main/gru.py
 import torch
 from torch import nn
 
@@ -39,15 +40,14 @@ class GRU(nn.Module):
         # 4 - на число классов
         self.fc = nn.Linear(hidden_size * self.bidirectional, 4)
 
-    def forward(self, X):
+    def forward(self, X: torch.Tensor) -> torch.Tensor:
         """
         Forward Propagation
 
         Args:
-            X: batch of training examples with dimension (batch_size, 1000, 3)
+            X: dimension (batch_size, 1000, 3)
         """
-        # initial hidden state:\
-        X = X.to(self.device)
+        # начальные состояние:
         h_0 = torch.zeros(
             self.num_layers * self.bidirectional,
             X.size(0),

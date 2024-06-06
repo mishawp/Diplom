@@ -19,3 +19,7 @@ def save_plot(x_y, ylabel, path, name):
     plt.ylabel(ylabel)
     plt.plot(x_y)
     plt.savefig(Path(path, f"{name}.png"), bbox_inches="tight")
+
+
+def visualize(model, path, name):
+    pass

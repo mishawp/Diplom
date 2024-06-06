@@ -1,3 +1,4 @@
+# https://github.com/HemaxiN/DL_ECG_Classification/blob/main/gru.py
 import torch
 from torch import nn
 
@@ -9,10 +10,9 @@ class BiGRU(nn.Module):
         hidden_size: int = 200,
         num_layers: int = 2,
         dropout: float = 0.3,
-        device=None,
+        device="cuda",
     ):
         """
-        Define the layers of the model
         Args:
             input_size (int): Кол-во входных признаков (1 на кол-во отведений, участвующих в обучение)
             hidden_size (int): Кол-во скрытых нейронов
@@ -33,29 +33,27 @@ class BiGRU(nn.Module):
             num_layers,
             dropout=dropout,
             batch_first=True,
-            bidirectional=self.bidirectional - 1,
+            bidirectional=(self.bidirectional == 2),
         )
 
         # 4 - на число классов
         self.fc = nn.Linear(hidden_size * self.bidirectional, 4)
 
-    def forward(self, X):
+    def forward(self, X: torch.Tensor) -> torch.Tensor:
         """
-        Forward Propagation
-
         Args:
-            X: batch of training examples with dimension (batch_size, 1000, 3)
+            X: размерность (batch_size, 1000, 3)
         """
-        # initial hidden state:
+        # начальные состояние:
         h_0 = torch.zeros(
-            self.num_layers * self.bidirectional, X.size(0), self.hidden_size
+            self.num_layers * self.bidirectional,
+            X.size(0),
+            self.hidden_size,
         ).to(self.device)
-
-        out_gru, _ = self.gru(X.to(self.device), h_0)
+        out_gru, _ = self.gru(X, h_0)
         # out_rnn shape: (batch_size, seq_length, hidden_size*bidirectional) = (batch_size, 1000, hidden_size*bidirectional)
 
-        # concatenate last timestep from the "left-to-right" direction and the first timestep from the
-        # "right-to-left" direction
+        # конкатенация выходов последнего временного шага из слоя "слева направо" и первого временного ряда слоя "справа налево"
         out_gru = torch.cat(
             (out_gru[:, -1, : self.hidden_size], out_gru[:, 0, self.hidden_size :]),
             dim=1,

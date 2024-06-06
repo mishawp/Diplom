@@ -1,6 +1,5 @@
 import os
 import customtkinter as ctk
-from pathlib import Path
 from src.utils import start_training
 import threading
 import sys
@@ -27,12 +26,10 @@ class TrainingPage(ctk.CTkFrame):
 
         self.training_thread = None
 
-        self.button_start = ctk.CTkLabel(
+        self.label = ctk.CTkLabel(
             self, text="Обучение модели", fg_color="gray30", corner_radius=6
         )
-        self.button_start.grid(
-            row=0, column=0, padx=20, pady=20, sticky="ew", columnspan=4
-        )
+        self.label.grid(row=0, column=0, padx=20, pady=20, sticky="ew", columnspan=4)
 
         self.button_back = ctk.CTkButton(
             self,

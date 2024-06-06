@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 from utils import start_training
-from nn1d import GRU
+from nn2d import AlexNet
 
 if __name__ == "__main__":
     model_parameters = {
@@ -12,11 +12,11 @@ if __name__ == "__main__":
         "device": "cuda",
     }
     parameters = {
-        "epochs": 20,
+        "epochs": 1,
         "batch_size": 256,
         "learning_rate": 0.01,
         "l2_decay": 0.0,
         "optimizer": "adam",
         "device": "cuda",
     }
-    start_training(GRU, 1, "gru", "1d-data", parameters, model_parameters)
+    start_training(AlexNet, 1, "gru", "my_data", parameters, model_parameters)

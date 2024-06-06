@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 from utils import start_training
-from nn1d import GRU
+from nn1d import BiGRU
 
 if __name__ == "__main__":
     model_parameters = {
@@ -19,4 +19,4 @@ if __name__ == "__main__":
         "optimizer": "adam",
         "device": "cuda",
     }
-    start_training(GRU, 1, "gru", "1d-data", parameters, model_parameters)
+    start_training(BiGRU, 1, "bigru", "1d-data", parameters, model_parameters)

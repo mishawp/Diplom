@@ -21,7 +21,7 @@ class DataProcessingPage(ctk.CTkFrame):
         self.grid_rowconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8), weight=1)
 
         self.label = ctk.CTkLabel(
-            self, text="Предобработка данных", fg_color="gray30", corner_radius=6
+            self, text="Обработка данных", fg_color="gray30", corner_radius=6
         )
         self.label.grid(row=0, column=0, padx=20, pady=20, sticky="ew", columnspan=4)
 

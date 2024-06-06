@@ -1,3 +1,3 @@
-from .AlexNet import AlexNet, AlexNetCreator
+from .AlexNet import AlexNet
 
-__all__ = ["AlexNet", "AlexNetCreator"]
+__all__ = ["AlexNet"]
