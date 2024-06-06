@@ -120,9 +120,9 @@ def start_training(
         statistics.at[epoch, "Sensitivity"] = quality_metrics.at["all", "Sensitivity"]
         statistics.at[epoch, "Specificity"] = quality_metrics.at["all", "Specificity"]
 
-        print(f"Epoch {epoch} loss: {train_mean_loss}")
-        print(f"Valid sensitivity: {quality_metrics.at["all","Sensitivity"]:.4f}")
-        print(f"Valid specificity: {quality_metrics.at["all", "Specificity"]:.4f}")
+        print(f"Loss: {train_mean_loss}")
+        print(f"Sensitivity: {quality_metrics.at["all","Sensitivity"]:.4f}")
+        print(f"Specificity: {quality_metrics.at["all", "Specificity"]:.4f}")
 
         if dev_mean_loss < best_model_dev_loss[1]:
             best_model_dev_loss = (model, dev_mean_loss)
@@ -157,7 +157,7 @@ def start_training(
         path_reports / "training_report.html",
         index=True,
         col_space=100,
-        float_format=lambda x: f"{x*100:.2f}%",
+        float_format=lambda x: f"{x:.4f}",
         justify="left",
     )
 

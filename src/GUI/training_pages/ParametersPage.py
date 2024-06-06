@@ -68,16 +68,16 @@ class ParametersPage(ctk.CTkFrame):
         self.controller.show_frame("NNSelectionPage")
 
     def next_page(self):
-        self.frame_model_naming.reset_color()
         self.frame_parameters.reset_color()
+        self.frame_model_naming.reset_color()
 
         if not self.frame_parameters.check_parameters():
             return
         if not self.frame_model_naming.check_name():
             return
 
-        model_name = self.frame_model_naming.get()
         parameters = self.frame_parameters.get()
+        model_name = self.frame_model_naming.get()
 
         dataset_name = self.frame_dataset.get()
         if dataset_name == "":
@@ -190,12 +190,19 @@ class NNFrame(ctk.CTkFrame):
         self.label = ctk.CTkLabel(
             self, text=self.path_nn.stem, fg_color="gray30", corner_radius=6
         )
-        self.label.grid(row=0, column=0, padx=20, pady=20, sticky="ew", columnspan=2)
+        self.label.grid(row=0, column=0, padx=20, pady=20, sticky="ew")
 
         self.button_open_nn = ctk.CTkButton(
             self, text="Открыть код", command=lambda: os.startfile(self.path_nn)
         )
-        self.button_open_nn.grid(
+        self.button_open_nn.grid(row=0, column=1, padx=20, pady=20, sticky="ew")
+        self.label_info = ctk.CTkLabel(
+            self,
+            text="Все аргументы конструктора нейронной сети\n должны иметь значения по-умолчанию!",
+            text_color="gold",
+            corner_radius=6,
+        )
+        self.label_info.grid(
             row=1, column=0, padx=20, pady=20, sticky="ew", columnspan=2
         )
 
@@ -266,13 +273,13 @@ class ModelNamingFrame(ctk.CTkFrame):
             self.label_name_status.configure(text="Название не может быть пустым")
             self.entry_name.configure(fg_color="red")
             return False
-        if name in self.path_model.iterdir():
+        if name in map(lambda x: x.name, self.path_model.iterdir()):
             self.label_name_status.configure(
                 text="Модель с таким именем уже существует"
             )
             self.entry_name.configure(fg_color="red")
             return False
-        if name in self.path_reports.iterdir():
+        if name in map(lambda x: x.name, self.path_reports.iterdir()):
             self.label_name_status.configure(
                 text="Модель с таким именем уже существует"
             )

@@ -74,9 +74,9 @@ class TrainingPage(ctk.CTkFrame):
 
     def start(self):
         for frame_name, frame in self.controller.frames.items():
-            if frame_name != "TrainingPage":
+            if frame_name != "TrainingPage" and frame_name != "ResultsPage":
                 frame.destroy()
-                del frame
+                self.controller.frames[frame_name] = None
 
         self.button_back.destroy()
         self.button_start.destroy()
@@ -85,6 +85,7 @@ class TrainingPage(ctk.CTkFrame):
             self.training_thread = threading.Thread(
                 target=start_training, kwargs=self.kwargs
             )
+            self.training_thread.daemon = True
             self.training_thread.start()
             self.check_training_thread()
 
@@ -95,11 +96,12 @@ class TrainingPage(ctk.CTkFrame):
         else:
             # Если поток завершился, обновляем статус
             print("Обучение завершено!\n")
-
+            sys.stdout = self.keep_stdout
+            sys.stderr = self.keep_stderr
             self.button_next = ctk.CTkButton(
                 self,
                 text="Результаты",
-                command=lambda: self.controller.show_frame("ResultsPage"),
+                command=self.next_page,
             )
             self.button_next.grid(row=4, column=3, padx=20, pady=20, sticky="ew")
 
@@ -107,3 +109,9 @@ class TrainingPage(ctk.CTkFrame):
         sys.stdout = self.keep_stdout
         sys.stderr = self.keep_stderr
         self.controller.show_frame("ParametersPage")
+
+    def next_page(self):
+        self.controller.frames["ResultsPage"].set_args(
+            model_name=self.kwargs["model_name"]
+        )
+        self.controller.show_frame("ResultsPage")
