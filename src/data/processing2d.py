@@ -1,5 +1,4 @@
 import numpy as np
-import tifffile
 import torch
 from scipy.signal import butter, sosfilt
 from pyts.image import GramianAngularField, MarkovTransitionField, RecurrencePlot

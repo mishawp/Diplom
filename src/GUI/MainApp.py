@@ -1,6 +1,5 @@
 import customtkinter as ctk
 import tkinter as tk
-from .MainMenu import MainMenu
 from .training_pages import (
     DataProcessingPage,
     NNSelectionPage,
@@ -8,7 +7,6 @@ from .training_pages import (
     TrainingPage,
     ResultsPage,
 )
-from .predict_pages import PredictPage
 
 
 class MainApp(ctk.CTk):
@@ -20,9 +18,7 @@ class MainApp(ctk.CTk):
 
         self.frames = {}
         for F in (
-            # MainMenu,
             DataProcessingPage,
-            PredictPage,
             NNSelectionPage,
             ParametersPage,
             TrainingPage,
