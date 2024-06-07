@@ -8,6 +8,8 @@ from .training_pages import (
     ResultsPage,
 )
 
+ctk.set_appearance_mode("light")
+
 
 class MainApp(ctk.CTk):
     def __init__(self):

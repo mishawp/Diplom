@@ -193,7 +193,7 @@ def start_training(
         if not model_parameters:
             model_parameters = {
                 k: value.default
-                for k, value in inspect.signature(model).parameters.items()
+                for k, value in inspect.signature(model_class).parameters.items()
             }
         print(
             f"parameters\n{parameters}",

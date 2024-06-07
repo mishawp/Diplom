@@ -21,7 +21,7 @@ class DataProcessingPage(ctk.CTkFrame):
         self.grid_rowconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8), weight=1)
 
         self.label = ctk.CTkLabel(
-            self, text="Обработка данных", fg_color="gray30", corner_radius=6
+            self, text="Обработка данных", fg_color="lightblue", corner_radius=6
         )
         self.label.grid(row=0, column=0, padx=20, pady=20, sticky="ew", columnspan=4)
 
@@ -144,7 +144,7 @@ class FrequencyFrame(ctk.CTkFrame):
         super().__init__(parent)
         self.grid_columnconfigure((0, 1), weight=1)
         self.title = ctk.CTkLabel(
-            self, text="Частота дискретизации", fg_color="gray30", corner_radius=6
+            self, text="Частота дискретизации", fg_color="lightblue", corner_radius=6
         )
         self.title.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky="ew")
         self.variable = ctk.StringVar(value="100")
@@ -173,7 +173,7 @@ class LeadsFrame(ctk.CTkFrame):
         self.title = ctk.CTkLabel(
             self,
             text="Отведения, используемые при обучении",
-            fg_color="gray30",
+            fg_color="lightblue",
             corner_radius=6,
         )
         self.title.grid(row=0, column=0, columnspan=12, padx=10, pady=10, sticky="ew")
@@ -210,7 +210,9 @@ class ProcessingFrame(ctk.CTkFrame):
     def __init__(self, parent, title: str, dimension: int):
         super().__init__(parent)
         self.grid_columnconfigure(0, weight=1)
-        self.title = ctk.CTkLabel(self, text=title, fg_color="gray30", corner_radius=6)
+        self.title = ctk.CTkLabel(
+            self, text=title, fg_color="lightblue", corner_radius=6
+        )
         self.title.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky="ew")
 
         self.dimension = dimension
@@ -340,7 +342,7 @@ class DatasetFrame(ctk.CTkFrame):
         self.grid_columnconfigure(tuple(range(len(self.raw_datasets))), weight=1)
 
         self.title = ctk.CTkLabel(
-            self, text="Датасет", fg_color="gray30", corner_radius=6
+            self, text="Датасет", fg_color="lightblue", corner_radius=6
         )
         self.title.grid(
             row=0,

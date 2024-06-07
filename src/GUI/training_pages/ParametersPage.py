@@ -13,7 +13,7 @@ class ParametersPage(ctk.CTkFrame):
         self.grid_rowconfigure((0, 1, 2, 3), weight=1)
 
         self.label = ctk.CTkLabel(
-            self, text="Гиперпараметры", fg_color="gray30", corner_radius=6
+            self, text="Гиперпараметры", fg_color="lightblue", corner_radius=6
         )
         self.label.grid(row=0, column=0, padx=20, pady=20, sticky="ew", columnspan=4)
 
@@ -109,7 +109,7 @@ class ParametersFrame(ctk.CTkFrame):
         self.entry_parameters = {}.fromkeys(self.parameters.keys())
 
         self.title = ctk.CTkLabel(
-            self, text="Параметры", fg_color="gray30", corner_radius=6
+            self, text="Параметры", fg_color="lightblue", corner_radius=6
         )
         self.title.grid(row=0, column=0, padx=10, pady=10, sticky="ew", columnspan=2)
 
@@ -188,7 +188,7 @@ class NNFrame(ctk.CTkFrame):
         """
         self.path_nn = Path(path_nn)
         self.label = ctk.CTkLabel(
-            self, text=self.path_nn.stem, fg_color="gray30", corner_radius=6
+            self, text=self.path_nn.stem, fg_color="lightblue", corner_radius=6
         )
         self.label.grid(row=0, column=0, padx=20, pady=20, sticky="ew")
 
@@ -224,7 +224,7 @@ class DatasetFrame(ctk.CTkFrame):
         self.grid_columnconfigure(tuple(range(len(self.processed_datasets))), weight=1)
 
         self.title = ctk.CTkLabel(
-            self, text="Датасет", fg_color="gray30", corner_radius=6
+            self, text="Датасет", fg_color="lightblue", corner_radius=6
         )
         self.title.grid(
             row=0,

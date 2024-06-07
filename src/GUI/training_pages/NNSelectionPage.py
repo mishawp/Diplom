@@ -12,7 +12,7 @@ class NNSelectionPage(ctk.CTkFrame):
         self.grid_rowconfigure((0, 1, 2, 3), weight=1)
 
         self.label = ctk.CTkLabel(
-            self, text="Нейронные сети", fg_color="gray30", corner_radius=6
+            self, text="Нейронные сети", fg_color="lightblue", corner_radius=6
         )
         self.label.grid(row=0, column=0, padx=20, pady=20, sticky="ew", columnspan=4)
 
@@ -60,7 +60,7 @@ class NNFrame(ctk.CTkFrame):
         self.label = ctk.CTkLabel(
             self,
             text=f"{dimension}D Нейронные Сети",
-            fg_color="gray30",
+            fg_color="lightblue",
             corner_radius=6,
         )
         self.label.grid(row=0, column=0, padx=10, pady=20, sticky="ew")
