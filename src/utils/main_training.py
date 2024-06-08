@@ -32,7 +32,7 @@ def start_training(
         dimension (int): размерность входных данных
         model_name (str): имя, под которым будет сохранена обученная модель
         dataset_name (str): имя датасета, из которого будут загружены данные
-        parameters (dict): гиперпараметры обучения в виде словаря (epochs, batch_size, learning_rate, l2_decay, optimizer: str = ["adam", "sgd"], device: str = ["cuda", "cpu", "mps"])
+        parameters (dict): гиперпараметры обучения в виде словаря (epochs, batch_size, learning_rate, l2_decay, early_stop, optimizer: str = ["adam", "sgd"], device: str = ["cuda", "cpu", "mps"])
         model_parameters (dict): Параметры класса модели
     """
 
@@ -47,7 +47,7 @@ def start_training(
     # установка устройства, на котором запускается обучение
     set_device(device)
     # установка seed на все модули рандома
-    set_seed(142)
+    set_seed(42)
 
     model = model_class(**model_parameters).to(device)
     dataset_train = MyDataset(dataset_name, dimension, "train", meta["n_train"])
@@ -94,8 +94,10 @@ def start_training(
     # потери за каждый батч
     train_losses = np.zeros(int(np.ceil(meta["n_train"] / dataloader_train.batch_size)))
 
-    best_model_dev_loss = (model, float("inf"))
     best_model_sensitivity = (model, 0)
+    best_model_dev_loss = (model, float("inf"))
+    patience_i = 0
+    patience_limit = parameters["patience_limit"]
     for epoch in epochs:
         print(f"Epoch {epoch}")
 
@@ -124,10 +126,17 @@ def start_training(
         print(f"Sensitivity: {quality_metrics.at["all","Sensitivity"]:.4f}")
         print(f"Specificity: {quality_metrics.at["all", "Specificity"]:.4f}")
 
-        if dev_mean_loss < best_model_dev_loss[1]:
-            best_model_dev_loss = (model, dev_mean_loss)
         if quality_metrics.at["all", "Specificity"] > best_model_sensitivity[1]:
             best_model_sensitivity = (model, quality_metrics.at["all", "Specificity"])
+        if dev_mean_loss < best_model_dev_loss[1]:
+            best_model_dev_loss = (model, dev_mean_loss)
+            patience_i = 0
+        else:
+            patience_i += 1
+
+        if patience_i == patience_limit:
+            print("Early stopping")
+            break
 
     # Тестирование на тестовой выборке
     test_quality_metrics = evaluate(

@@ -6,17 +6,17 @@ from nn2d import AlexNet
 
 if __name__ == "__main__":
     model_parameters = {
-        "input_size": 3,
-        "hidden_size": 128,
-        "num_layers": 2,
-        "device": "cuda",
+        "input_size": 9,
+        "num_classes": 4,
+        "dropout": 0.5,
     }
     parameters = {
-        "epochs": 1,
-        "batch_size": 256,
+        "epochs": 100,
+        "patience_limit": 20,
+        "batch_size": 4,
         "learning_rate": 0.01,
         "l2_decay": 0.0,
-        "optimizer": "adam",
+        "optimizer": "sgd",
         "device": "cuda",
     }
-    start_training(AlexNet, 1, "gru", "my_data", parameters, model_parameters)
+    start_training(AlexNet, 2, "alexnet", "2d-data", parameters, model_parameters)

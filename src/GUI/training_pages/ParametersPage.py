@@ -103,7 +103,15 @@ class ParametersFrame(ctk.CTkFrame):
         super().__init__(parent)
         self.grid_columnconfigure(0, weight=1)
         self.parameters = {}.fromkeys(
-            ("epochs", "batch_size", "learning_rate", "l2_decay", "optimizer", "device")
+            (
+                "epochs",
+                "patience_limit",
+                "batch_size",
+                "learning_rate",
+                "l2_decay",
+                "optimizer",
+                "device",
+            )
         )
         self.label_parameters = {}.fromkeys(self.parameters.keys())
         self.entry_parameters = {}.fromkeys(self.parameters.keys())
@@ -115,7 +123,7 @@ class ParametersFrame(ctk.CTkFrame):
 
         for i, param in enumerate(self.entry_parameters, start=1):
             label = ctk.CTkLabel(self, text=param)
-            label.grid(row=i, column=0, padx=(20, 10), pady=20, sticky="ew")
+            label.grid(row=i, column=0, padx=(20, 10), pady=10, sticky="ew")
 
             if param == "optimizer":
                 self.var_optimizer = ctk.StringVar(value="adam")
@@ -124,7 +132,7 @@ class ParametersFrame(ctk.CTkFrame):
                     values=["adam", "sgd"],
                     variable=self.var_optimizer,
                 )
-                entry.grid(row=i, column=1, padx=(10, 20), pady=20, sticky="ew")
+                entry.grid(row=i, column=1, padx=(10, 20), pady=10, sticky="ew")
             elif param == "device":
                 self.var_device = ctk.StringVar(value="cuda")
                 entry = ctk.CTkOptionMenu(
@@ -132,10 +140,10 @@ class ParametersFrame(ctk.CTkFrame):
                     values=["cuda", "cpu", "mps"],
                     variable=self.var_device,
                 )
-                entry.grid(row=i, column=1, padx=(10, 20), pady=20, sticky="ew")
+                entry.grid(row=i, column=1, padx=(10, 20), pady=10, sticky="ew")
             else:
                 entry = ctk.CTkEntry(self)
-                entry.grid(row=i, column=1, padx=(10, 20), pady=20, sticky="ew")
+                entry.grid(row=i, column=1, padx=(10, 20), pady=10, sticky="ew")
 
             self.label_parameters[param] = label
             self.entry_parameters[param] = entry
@@ -145,7 +153,7 @@ class ParametersFrame(ctk.CTkFrame):
     def check_parameters(self):
         for param, entry in self.entry_parameters.items():
             value = entry.get()
-            if param == "epochs" or param == "batch_size":
+            if param == "epochs" or param == "batch_size" or param == "patience_limit":
                 if not value.isdigit():
                     entry.configure(fg_color="red")
                     return False
@@ -190,20 +198,20 @@ class NNFrame(ctk.CTkFrame):
         self.label = ctk.CTkLabel(
             self, text=self.path_nn.stem, fg_color="lightblue", corner_radius=6
         )
-        self.label.grid(row=0, column=0, padx=20, pady=20, sticky="ew")
+        self.label.grid(row=0, column=0, padx=20, pady=10, sticky="ew")
 
         self.button_open_nn = ctk.CTkButton(
             self, text="Открыть код", command=lambda: os.startfile(self.path_nn)
         )
-        self.button_open_nn.grid(row=0, column=1, padx=20, pady=20, sticky="ew")
+        self.button_open_nn.grid(row=0, column=1, padx=20, pady=10, sticky="ew")
         self.label_info = ctk.CTkLabel(
             self,
-            text="Все аргументы конструктора нейронной сети\n должны иметь значения по-умолчанию!",
-            text_color="gold",
+            text="Все аргументы конструктора нейронной сети\nдолжны иметь значения по-умолчанию!",
+            text_color="blue",
             corner_radius=6,
         )
         self.label_info.grid(
-            row=1, column=0, padx=20, pady=20, sticky="ew", columnspan=2
+            row=1, column=0, padx=20, pady=10, sticky="ew", columnspan=2
         )
 
     def get(self):
