@@ -47,7 +47,7 @@ def start_training(
     # установка устройства, на котором запускается обучение
     set_device(device)
     # установка seed на все модули рандома
-    set_seed(42)
+    set_seed(2024)
 
     model = model_class(**model_parameters).to(device)
     dataset_train = MyDataset(dataset_name, dimension, "train", meta["n_train"])
@@ -122,7 +122,8 @@ def start_training(
         statistics.at[epoch, "Sensitivity"] = quality_metrics.at["all", "Sensitivity"]
         statistics.at[epoch, "Specificity"] = quality_metrics.at["all", "Specificity"]
 
-        print(f"Loss: {train_mean_loss}")
+        print(f"Training-Loss: {train_mean_loss}")
+        print(f"Validation-Loss: {dev_mean_loss}")
         print(f"Sensitivity: {quality_metrics.at["all","Sensitivity"]:.4f}")
         print(f"Specificity: {quality_metrics.at["all", "Specificity"]:.4f}")
 
@@ -179,19 +180,25 @@ def start_training(
         justify="left",
     )
     save_plot(
-        statistics["Training-loss"],
-        f"Training-Validation-Loss-{parameters['optimizer']}-{parameters['learning_rate']}",
+        statistics["Validation-loss"][statistics["Validation-loss"] != 0],
+        "Validation-Loss",
+        path_reports,
+        "validation_loss",
+    )
+    save_plot(
+        statistics["Training-loss"][statistics["Training-loss"] != 0],
+        "Training-Loss",
         path_reports,
         "training_loss",
     )
     save_plot(
-        statistics["Sensitivity"],
+        statistics["Sensitivity"][statistics["Sensitivity"] != 0],
         "Sensitivity",
         path_reports,
         "sensitivity",
     )
     save_plot(
-        statistics["Specificity"],
+        statistics["Specificity"][statistics["Specificity"] != 0],
         "Specificity",
         path_reports,
         "specificity",

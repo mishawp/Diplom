@@ -2,22 +2,15 @@ import numpy as np
 import torch
 from scipy.signal import butter, sosfilt
 from pyts.image import GramianAngularField, MarkovTransitionField, RecurrencePlot
-from torchvision import transforms
-from scipy.stats import zscore
+from torchvision.models import AlexNet_Weights
 
 
 def process2d(signal: np.ndarray) -> np.ndarray:
     signal = butterworth_filter(signal)
 
-    # signal = minmax_normalization(signal)
-
-    # imgs = transform_to_image(signal)
-
-    # imgs = resize(imgs)
-
-    signal = znormolization(signal)
-
-    imgs = simple_transformation(signal)
+    signal = minmax_normalization(signal)
+    imgs = transform_to_image(signal)
+    imgs = resize(imgs)
 
     return imgs
 
@@ -37,8 +30,8 @@ def minmax_normalization(signal: np.ndarray) -> np.ndarray:
 
 
 GAF = GramianAngularField(image_size=1000, method="summation")
-RP = RecurrencePlot(threshold="distance", percentage=10)
-MTF = MarkovTransitionField(image_size=1000, n_bins=25)
+RP = RecurrencePlot(threshold="distance", percentage=20)
+MTF = MarkovTransitionField(image_size=1000, n_bins=20)
 
 
 def transform_to_image(signal: np.ndarray) -> np.ndarray:
@@ -57,20 +50,12 @@ def transform_to_image(signal: np.ndarray) -> np.ndarray:
     return imgs
 
 
-transform_resize = transforms.Resize((400, 400))
+transform_resize = AlexNet_Weights.IMAGENET1K_V1.transforms()
 
 
 def resize(imgs: np.ndarray) -> np.ndarray:
-    return transform_resize(torch.from_numpy(imgs)).numpy()
-
-
-def znormolization(signal):
-    """Z-score normalization"""
-    return zscore(signal, axis=0)
-
-
-def simple_transformation(signal: np.ndarray) -> np.ndarray:
-    img_size = int(np.floor(np.sqrt(signal.shape[0])))
-    new_size = signal.shape[1] * img_size * img_size
-    signal = signal.flatten()[:new_size]
-    return signal.reshape((signal.shape[1], img_size, img_size))
+    return (
+        transform_resize(torch.from_numpy(imgs.reshape(3, 3, 1000, 1000)))
+        .numpy()
+        .reshape(9, 224, 224)
+    )

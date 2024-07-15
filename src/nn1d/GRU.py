@@ -1,4 +1,3 @@
-# https://github.com/HemaxiN/DL_ECG_Classification/blob/main/gru.py
 import torch
 from torch import nn
 
@@ -54,12 +53,12 @@ class GRU(nn.Module):
             self.hidden_size,
         ).to(self.device)
         out_gru, _ = self.gru(X, h_0)
-        # out_rnn shape: (batch_size, seq_length, hidden_size*bidirectional) = (batch_size, 1000, hidden_size*bidirectional)
+        # out_gru shape: (batch_size, seq_length, hidden_size*bidirectional) = (batch_size, 1000, hidden_size*bidirectional)
 
         # last timestep
         out_gru = out_gru[:, -1, :]
 
-        # out_rnn shape: (batch_size, hidden_size*bidirectional) - ready to enter the fc layer
+        # out_gru shape: (batch_size, hidden_size*bidirectional) - ready to enter the fc layer
         out_fc = self.fc(out_gru)
         # out_fc shape: (batch_size, num_classes)
 
